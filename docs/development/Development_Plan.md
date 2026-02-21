@@ -113,3 +113,24 @@
 2.  **實作 Markdown Viewer 模組**：支援 `remark`, `rehype` 與語法高亮 (Syntax Highlighting)。
 3.  **實作 Code Diff Viewer 模組**：如同 GitHub PR 的檢視模式，呈現原始碼修改。
 4.  **實作資料/圖表 Viewer 模組**：若 Agent 傳回結構化分析結果，結合 Recharts / Chart.js 等套件呈現動態圖表。
+
+---
+
+## 階段五：無伺服器沙盒編譯與執行機制 (Phase 5 - Agent Code Sandbox)
+本階段目標：賦予 Agent 撰寫、編譯、執行程式碼並自我修正的能力 (Code Execution Capability)，同時確保宿主機 (Host) 絕對的安全隔離。
+
+### 5.1 Docker 引擎整合與基礎建設
+1.  **整合 Docker Client API**：於 Gateway 引入 `docker-java` 工具包，使 Spring Boot 能直接與本機或遠端的 Docker Daemon 溝通。
+2.  **建置基礎 Sandbox Image**：打包涵蓋 Java (Maven/Gradle), Python, Node.js 等基礎編譯防護環境的 Docker Image (`teamwork-sandbox-base`)。
+3.  **實作 Sandbox Manager Service**：負責 Lifecycle 管理 (Create, Start, Exec, Kill, Delete 容器)。
+
+### 5.2 大模型專用程式碼執行工具 (CodeExecutionTool)
+1.  **開發 `@Tool execute_code`**：令 Agent 能夠透過參數傳遞 `language` 與 `source_code` 給這套工具。
+2.  **動態掛載與執行**：工具接收到程式碼後，透過 Sandbox Manager 啟動物件容器，掛載暫停的 Volume (或直接 stdin 流寫入檔案)，執行編譯與指令。
+3.  **標準輸出入擷取**：捕捉隔離容器內的 `stdout` (執行結果) 與 `stderr` (編譯或執行時期錯誤)，並以字串形式返回給大腦。
+    *   *Agent 收到 `stderr` 時觸發 ReAct 的 Self-Correction 機制，重新生成並呼叫工具。*
+
+### 5.3 資源限制與並發效能防護 (Resource Quotas & Pooling)
+1.  **防禦性限制 (Limits)**：利用 Docker API 嚴格設定每個沙盒容器的記憶體 (e.g. `256MB`)、CPU (`0.5 cores`) 以及無權限的網路隔離模式 (無對外網路或 Bridge 隔離)。
+2.  **容器池化 (Container Pooling)**：為解決高併發情境下 Docker 啟動延遲 (`Docker Cold Start`)，實作一個 Warm Pool。預先在背景啟動 N 個待命的空沙盒。
+3.  **安全銷毀與回收**：設定極短的執行 Timeout (例如 30 秒) 以防阻斷式無限迴圈 (Infinite Loop)。任務完成或超時後強制銷毀 (`docker rm -f`) 清理資源。
