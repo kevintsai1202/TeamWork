@@ -1,5 +1,6 @@
 package com.teamwork.gateway.service;
 
+import com.teamwork.gateway.agent.MasterAgent;
 import com.teamwork.gateway.dto.TaskRequest;
 import com.teamwork.gateway.entity.TaskRecord;
 import com.teamwork.gateway.repository.TaskRecordRepository;
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class TaskService {
 
     private final TaskRecordRepository taskRecordRepository;
+    private final MasterAgent masterAgent;
 
     @Transactional
     public TaskRecord createNewTask(TaskRequest request) {
@@ -28,7 +30,8 @@ public class TaskService {
         TaskRecord savedTask = taskRecordRepository.save(task);
         log.info("Task created successfully with ID: {}", savedTask.getId());
 
-        // 未來這裡可將 Task 丟入 Queue 或 @Async Event 進行處理
+        // 觸發 MasterAgent 進行非同步任務處理
+        masterAgent.processTask(savedTask.getId(), request.getInputPayload());
 
         return savedTask;
     }

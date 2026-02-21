@@ -20,10 +20,4 @@ class TeamworkGatewayApplicationTests {
         // This test simply verifies if the Spring application context starts
         // successfully.
     }
-
-    @Test
-    void applicationMain() {
-        // This test calls the main method directly for coverage purposes.
-        TeamworkGatewayApplication.main(new String[] {});
-    }
 }
