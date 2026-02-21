@@ -17,7 +17,7 @@
 
   <properties>
     <java.version>21</java.version>
-    <spring-ai.version>2.0.0-M2</spring-ai.version>
+    <spring-ai.version>1.0.0-M5</spring-ai.version>
   </properties>
 
   <dependencies>
@@ -53,6 +53,11 @@
     <!-- Spring AI -->
     <!-- Add core Spring AI starter or dependencies here when needed for Phase 2 -->
     <!-- For now, we prepare the BOM and repositories -->
+    <dependency>
+      <groupId>org.springframework.ai</groupId>
+      <artifactId>spring-ai-core</artifactId>
+      <version>${spring-ai.version}</version>
+    </dependency>
 
     <!-- Utilities -->
     <dependency>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TaskRecord.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">teamwork-gateway</a> &gt; <a href="index.source.html" class="el_package">com.teamwork.gateway.entity</a> &gt; <span class="el_source">TaskRecord.java</span></div><h1>TaskRecord.java</h1><pre class="source lang-java linenums">package com.teamwork.gateway.entity;
+
+import jakarta.persistence.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+@Data
+@NoArgsConstructor
+@Entity
+@Table(name = &quot;task_records&quot;)
+public class TaskRecord {
+
+    @Id
+    private String id = UUID.randomUUID().toString();
+
+    @Column(name = &quot;parent_task_id&quot;)
+    private String parentTaskId;
+
+    @Column(name = &quot;profile_id&quot;, nullable = false)
+    private String profileId;
+
+    @Column(nullable = false)
+    private String status; // PENDING, RUNNING, COMPLETED, FAILED
+
+    @Column(name = &quot;input_payload&quot;, columnDefinition = &quot;TEXT&quot;)
+    private String inputPayload;
+
+    @Column(name = &quot;created_at&quot;, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = &quot;updated_at&quot;)
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+<span class="fc" id="L39">        createdAt = LocalDateTime.now();</span>
+<span class="fc" id="L40">        updatedAt = LocalDateTime.now();</span>
+<span class="fc" id="L41">    }</span>
+
+    @PreUpdate
+    protected void onUpdate() {
+<span class="fc" id="L45">        updatedAt = LocalDateTime.now();</span>
+<span class="fc" id="L46">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

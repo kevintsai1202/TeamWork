@@ -1,6 +1,11 @@
+E:\github\TeamWork\gateway\src\test\java\com\teamwork\gateway\agent\MasterAgentTest.java
+E:\github\TeamWork\gateway\src\test\java\com\teamwork\gateway\config\AsyncConfigTest.java
 E:\github\TeamWork\gateway\src\test\java\com\teamwork\gateway\controller\PingControllerTest.java
+E:\github\TeamWork\gateway\src\test\java\com\teamwork\gateway\controller\SseControllerTest.java
 E:\github\TeamWork\gateway\src\test\java\com\teamwork\gateway\controller\TaskControllerTest.java
 E:\github\TeamWork\gateway\src\test\java\com\teamwork\gateway\entity\EntityCoverageTest.java
+E:\github\TeamWork\gateway\src\test\java\com\teamwork\gateway\memory\RedisChatMemoryTest.java
 E:\github\TeamWork\gateway\src\test\java\com\teamwork\gateway\SchemaIntegrationTest.java
+E:\github\TeamWork\gateway\src\test\java\com\teamwork\gateway\service\SseConnectionServiceTest.java
 E:\github\TeamWork\gateway\src\test\java\com\teamwork\gateway\service\TaskServiceTest.java
 E:\github\TeamWork\gateway\src\test\java\com\teamwork\gateway\TeamworkGatewayApplicationTests.java

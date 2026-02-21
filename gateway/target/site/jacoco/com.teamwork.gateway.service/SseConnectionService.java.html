@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="zh"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SseConnectionService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">teamwork-gateway</a> &gt; <a href="index.source.html" class="el_package">com.teamwork.gateway.service</a> &gt; <span class="el_source">SseConnectionService.java</span></div><h1>SseConnectionService.java</h1><pre class="source lang-java linenums">package com.teamwork.gateway.service;
+
+import com.teamwork.gateway.event.TaskStatusChangeEvent;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import java.io.IOException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+@Service
+<span class="fc" id="L14">@Slf4j</span>
+<span class="fc" id="L15">public class SseConnectionService {</span>
+
+    // 存放正在監聽的 SseEmitter
+    // &lt;taskId, SseEmitter&gt;
+<span class="fc" id="L19">    private final Map&lt;String, SseEmitter&gt; emitters = new ConcurrentHashMap&lt;&gt;();</span>
+
+    /**
+     * 建立特定 TaskID 的 SSE 連線，並處理 Timeout 以及 Completion 事件。
+     *
+     * @param taskId 任務的 UUID
+     * @return 該任務註冊好的 SseEmitter
+     */
+    public SseEmitter subscribe(String taskId) {
+        // 設定 30 分鐘 Timeout (1000 * 60 * 30 ms)
+<span class="fc" id="L29">        SseEmitter emitter = new SseEmitter(1800000L);</span>
+<span class="fc" id="L30">        emitters.put(taskId, emitter);</span>
+
+<span class="fc" id="L32">        emitter.onCompletion(() -&gt; {</span>
+<span class="nc" id="L33">            log.info(&quot;SSE Connection completed for taskId: {}&quot;, taskId);</span>
+<span class="nc" id="L34">            emitters.remove(taskId);</span>
+<span class="nc" id="L35">        });</span>
+<span class="fc" id="L36">        emitter.onTimeout(() -&gt; {</span>
+<span class="nc" id="L37">            log.warn(&quot;SSE Connection timeout for taskId: {}&quot;, taskId);</span>
+<span class="nc" id="L38">            emitters.remove(taskId);</span>
+<span class="nc" id="L39">        });</span>
+<span class="fc" id="L40">        emitter.onError((e) -&gt; {</span>
+<span class="nc" id="L41">            log.error(&quot;SSE Connection error for taskId: {}&quot;, taskId, e);</span>
+<span class="nc" id="L42">            emitters.remove(taskId);</span>
+<span class="nc" id="L43">        });</span>
+
+<span class="fc" id="L45">        log.info(&quot;Client subscribed to SSE for taskId: {}&quot;, taskId);</span>
+<span class="fc" id="L46">        return emitter;</span>
+    }
+
+    /**
+     * 從整個 Spring ApplicationContext 中接收 TaskStatusChangeEvent，並分派給對應的 SseEmitter。
+     */
+    @EventListener
+    public void handleTaskStatusChange(TaskStatusChangeEvent event) {
+<span class="fc" id="L54">        String taskId = event.getTaskId();</span>
+<span class="fc" id="L55">        SseEmitter emitter = emitters.get(taskId);</span>
+
+<span class="fc bfc" id="L57" title="All 2 branches covered.">        if (emitter != null) {</span>
+            try {
+                // 送出 JSON 格式 { &quot;status&quot;: &quot;RUNNING&quot;, &quot;payload&quot;: &quot;...&quot; }
+                // 這邊利用 SseEmitter.event() 的輔助方法建構格式
+<span class="fc" id="L61">                SseEmitter.SseEventBuilder sseEvent = SseEmitter.event()</span>
+<span class="fc" id="L62">                        .id(taskId)</span>
+<span class="fc" id="L63">                        .name(&quot;task-status&quot;)</span>
+<span class="fc" id="L64">                        .data(Map.of(</span>
+<span class="fc" id="L65">                                &quot;status&quot;, event.getStatus(),</span>
+<span class="fc bfc" id="L66" title="All 2 branches covered.">                                &quot;payload&quot;, event.getPayload() != null ? event.getPayload() : &quot;&quot;));</span>
+<span class="fc" id="L67">                emitter.send(sseEvent);</span>
+<span class="fc" id="L68">                log.info(&quot;Dispatched SSE event for taskId: {} with status: {}&quot;, taskId, event.getStatus());</span>
+
+                // 若任務結束，主動關閉這個 emitter
+<span class="pc bpc" id="L71" title="1 of 4 branches missed.">                if (&quot;COMPLETED&quot;.equals(event.getStatus()) || &quot;FAILED&quot;.equals(event.getStatus())) {</span>
+<span class="fc" id="L72">                    emitter.complete();</span>
+<span class="fc" id="L73">                    emitters.remove(taskId); // onCompletion 也會呼叫，不過提早刪除無妨</span>
+                }
+<span class="fc" id="L75">            } catch (IOException e) {</span>
+<span class="fc" id="L76">                log.error(&quot;Failed to send SSE event to taskId: {}&quot;, taskId, e);</span>
+                // 送不出的話直接讓他 complete 斷線，稍後由 timeout / error 自動清除，或是手動清
+<span class="fc" id="L78">                emitters.remove(taskId);</span>
+<span class="fc" id="L79">            }</span>
+        }
+<span class="fc" id="L81">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

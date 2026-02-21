@@ -1,4 +1,7 @@
+E:\github\TeamWork\gateway\src\main\java\com\teamwork\gateway\agent\MasterAgent.java
+E:\github\TeamWork\gateway\src\main\java\com\teamwork\gateway\config\AsyncConfig.java
 E:\github\TeamWork\gateway\src\main\java\com\teamwork\gateway\controller\PingController.java
+E:\github\TeamWork\gateway\src\main\java\com\teamwork\gateway\controller\SseController.java
 E:\github\TeamWork\gateway\src\main\java\com\teamwork\gateway\controller\TaskController.java
 E:\github\TeamWork\gateway\src\main\java\com\teamwork\gateway\dto\TaskRequest.java
 E:\github\TeamWork\gateway\src\main\java\com\teamwork\gateway\dto\TaskResponse.java
@@ -8,13 +11,17 @@ E:\github\TeamWork\gateway\src\main\java\com\teamwork\gateway\entity\AiModel.jav
 E:\github\TeamWork\gateway\src\main\java\com\teamwork\gateway\entity\TaskOutput.java
 E:\github\TeamWork\gateway\src\main\java\com\teamwork\gateway\entity\TaskRecord.java
 E:\github\TeamWork\gateway\src\main\java\com\teamwork\gateway\entity\ToolConfig.java
+E:\github\TeamWork\gateway\src\main\java\com\teamwork\gateway\event\TaskStatusChangeEvent.java
 E:\github\TeamWork\gateway\src\main\java\com\teamwork\gateway\exception\ErrorResponse.java
 E:\github\TeamWork\gateway\src\main\java\com\teamwork\gateway\exception\GlobalExceptionHandler.java
+E:\github\TeamWork\gateway\src\main\java\com\teamwork\gateway\memory\ChatMessageDto.java
+E:\github\TeamWork\gateway\src\main\java\com\teamwork\gateway\memory\RedisChatMemory.java
 E:\github\TeamWork\gateway\src\main\java\com\teamwork\gateway\repository\AccountToolPermissionRepository.java
 E:\github\TeamWork\gateway\src\main\java\com\teamwork\gateway\repository\AgentProfileRepository.java
 E:\github\TeamWork\gateway\src\main\java\com\teamwork\gateway\repository\AiModelRepository.java
 E:\github\TeamWork\gateway\src\main\java\com\teamwork\gateway\repository\TaskOutputRepository.java
 E:\github\TeamWork\gateway\src\main\java\com\teamwork\gateway\repository\TaskRecordRepository.java
 E:\github\TeamWork\gateway\src\main\java\com\teamwork\gateway\repository\ToolConfigRepository.java
+E:\github\TeamWork\gateway\src\main\java\com\teamwork\gateway\service\SseConnectionService.java
 E:\github\TeamWork\gateway\src\main\java\com\teamwork\gateway\service\TaskService.java
 E:\github\TeamWork\gateway\src\main\java\com\teamwork\gateway\TeamworkGatewayApplication.java
