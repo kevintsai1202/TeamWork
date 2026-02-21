@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Work 多 AI Agents 系統架構圖</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #0D1117;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+        }
+
+        h1 {
+            margin-bottom: 5px;
+            font-weight: 300;
+            letter-spacing: 2px;
+        }
+
+        h3 {
+            margin-top: 0;
+            color: #80DEEA;
+            font-weight: 300;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .canvas-container {
+            width: 100%;
+            max-width: 1200px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        svg {
+            background: #0D1117;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Team Work 系統架構圖</h1>
+    <h3>動態 SVG 視覺化呈現</h3>
+
+    <div class="canvas-container">
+        <svg width="100%" height="800" viewBox="0 0 1350 800" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <!-- 背景網格 -->
+                <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1" />
+                </pattern>
+
+                <!-- 霓虹發光濾鏡 -->
+                <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feGaussianBlur stdDeviation="5" result="blur" />
+                    <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                </filter>
+                <filter id="glow-strong" x="-30%" y="-30%" width="160%" height="160%">
+                    <feGaussianBlur stdDeviation="15" result="blur" />
+                    <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                </filter>
+            </defs>
+
+            <!-- 背景 -->
+            <rect width="100%" height="100%" fill="#0D1117" />
+            <rect width="100%" height="100%" fill="url(#grid)" />
+
+            <!-- 線條連接區 (利用 SVG 的貝茲曲線) -->
+            <!-- Dashboard 到 Gateway -->
+            <path id="path1" d="M 280 200 C 400 200, 400 350, 500 350" fill="none" stroke="#2E7D32" stroke-width="2"
+                opacity="0.5" />
+            <!-- Gateway 到 Agent Master -->
+            <path id="path2" d="M 720 350 C 780 350, 800 250, 850 250" fill="none" stroke="#E65100" stroke-width="2"
+                opacity="0.5" />
+            <path id="path3" d="M 720 350 C 780 350, 800 450, 850 450" fill="none" stroke="#E65100" stroke-width="2"
+                stroke-dasharray="5,5" opacity="0.5" />
+            <!-- Agent 到 Gateway (Internal Event return) -->
+            <path id="path4" d="M 610 430 L 610 600" fill="none" stroke="#6A1B9A" stroke-width="2" opacity="0.5" />
+            <!-- Agent 到 Tool Integration -->
+            <path id="path5" d="M 1010 540 C 1010 560, 1160 550, 1160 580" fill="none" stroke="#00838F" stroke-width="2"
+                opacity="0.5" />
+            <!-- Agent 到 Gateway (Internal Event return) -->
+            <path id="path6" d="M 850 350 C 800 350, 780 400, 720 400" fill="none" stroke="#2E7D32" stroke-width="2"
+                stroke-dasharray="8,8" opacity="0.8" />
+
+            <!-- 動態資料流星 -->
+            <circle r="4" fill="#64B5F6" filter="url(#glow)">
+                <animateMotion dur="2s" repeatCount="indefinite">
+                    <mpath href="#path1" />
+                </animateMotion>
+            </circle>
+            <circle r="4" fill="#FFB74D" filter="url(#glow)">
+                <animateMotion dur="1.5s" repeatCount="indefinite" begin="0.5s">
+                    <mpath href="#path2" />
+                </animateMotion>
+            </circle>
+            <circle r="4" fill="#4DD0E1" filter="url(#glow)">
+                <animateMotion dur="2s" repeatCount="indefinite" begin="1s">
+                    <mpath href="#path5" />
+                </animateMotion>
+            </circle>
+            <!-- Internal Event return animation -->
+            <circle r="6" fill="#A5D6A7" filter="url(#glow)">
+                <animateMotion dur="2.5s" repeatCount="indefinite" begin="0.2s">
+                    <mpath href="#path6" />
+                </animateMotion>
+            </circle>
+
+            <!-- 節點 1: Frontend -->
+            <g transform="translate(60, 150)">
+                <rect width="260" height="120" rx="15" fill="rgba(21, 101, 192, 0.1)" stroke="#1565C0" stroke-width="2"
+                    filter="url(#glow)" />
+                <text x="20" y="40" fill="#FFFFFF" font-size="18" font-family="sans-serif" font-weight="bold">🌐
+                    Frontend 儀表板</text>
+                <text x="20" y="70" fill="#90CAF9" font-size="14" font-family="sans-serif">【多租戶】個人 Agent 看板</text>
+                <text x="20" y="95" fill="#42A5F5" font-size="14" font-family="sans-serif">【大盤】中央監控儀表板</text>
+            </g>
+
+            <!-- 節點 2: Gateway -->
+            <g transform="translate(500, 270)">
+                <rect width="250" height="160" rx="15" fill="rgba(46, 125, 50, 0.1)" stroke="#2E7D32" stroke-width="2"
+                    filter="url(#glow-strong)" />
+                <text x="20" y="40" fill="#FFFFFF" font-size="18" font-family="sans-serif" font-weight="bold">🧠 Spring
+                    Gateway</text>
+                <text x="20" y="70" fill="#A5D6A7" font-size="14" font-family="sans-serif">REST API Controller</text>
+                <text x="20" y="100" fill="#A5D6A7" font-size="14" font-family="sans-serif">Event Router /
+                    WebSocket</text>
+                <text x="20" y="130" fill="#69F0AE" font-size="15" font-family="sans-serif" font-weight="bold">⚡ Redis
+                    Streams (Sub)</text>
+            </g>
+
+            <!-- 節點 3a: PostgreSQL -->
+            <g transform="translate(380, 580)">
+                <rect width="220" height="90" rx="15" fill="rgba(106, 27, 154, 0.1)" stroke="#6A1B9A" stroke-width="2"
+                    filter="url(#glow)" />
+                <text x="20" y="32" fill="#FFFFFF" font-size="16" font-family="sans-serif" font-weight="bold">💾
+                    Postgres (State & Vector)</text>
+                <text x="20" y="55" fill="#CE93D8" font-size="13" font-family="sans-serif">» 關聯式: 任務狀態 (Task
+                    State)</text>
+                <text x="20" y="75" fill="#CE93D8" font-size="13" font-family="sans-serif">» pgvector: 長期記憶
+                    (進化大腦)</text>
+            </g>
+
+            <!-- 節點 3b: Redis 核心中樞 -->
+            <g transform="translate(620, 560)">
+                <rect width="360" height="120" rx="15" fill="rgba(211, 47, 47, 0.15)" stroke="#D32F2F" stroke-width="3"
+                    filter="url(#glow-strong)" stroke-dasharray="10,5" />
+                <text x="20" y="35" fill="#FFFFFF" font-size="20" font-family="sans-serif" font-weight="bold">⚡ Redis
+                    (核心資料與事件中樞)</text>
+                <text x="20" y="70" fill="#FFCDD2" font-size="16" font-family="sans-serif" font-weight="bold">» Streams
+                    (多租戶 Event Bus)</text>
+                <text x="20" y="100" fill="#EF9A9A" font-size="15" font-family="sans-serif">» Chat Memory (高效上下文)</text>
+            </g>
+
+            <!-- 節點 4: Agent Pool / Master -->
+            <g transform="translate(830, 160)">
+                <rect width="360" height="380" rx="20" fill="none" stroke="rgba(230, 81, 0, 0.4)" stroke-width="2"
+                    stroke-dasharray="8,8" />
+                <text x="20" y="35" fill="#FFB74D" font-size="16" font-family="sans-serif" font-weight="bold">⚙️ Agent
+                    Execution Pool (Virtual Threads)</text>
+
+                <!-- Master -->
+                <g transform="translate(20, 60)">
+                    <rect width="220" height="90" rx="10" fill="rgba(230, 81, 0, 0.1)" stroke="#E65100" stroke-width="2"
+                        filter="url(#glow)" />
+                    <text x="15" y="35" fill="#FFFFFF" font-size="16" font-family="sans-serif" font-weight="bold">🤖
+                        Master Agent</text>
+                    <text x="15" y="65" fill="#FFB74D" font-size="13" font-family="sans-serif">Depth 0 • ReAct
+                        Loop</text>
+                </g>
+
+                <!-- Spawning Child -->
+                <g transform="translate(20, 240)">
+                    <rect width="220" height="90" rx="10" fill="rgba(230, 81, 0, 0.1)" stroke="#E65100" stroke-width="2"
+                        filter="url(#glow)" />
+                    <text x="15" y="35" fill="#FFFFFF" font-size="16" font-family="sans-serif" font-weight="bold">⚡ Sub
+                        Agent</text>
+                    <text x="15" y="65" fill="#FFB74D" font-size="13" font-family="sans-serif">Depth 1~3 •
+                        Spawning</text>
+                </g>
+            </g>
+
+            <!-- 節點 5: Tool Integration -->
+            <g transform="translate(1020, 580)">
+                <rect width="280" height="100" rx="15" fill="rgba(0, 131, 143, 0.1)" stroke="#00838F" stroke-width="2"
+                    filter="url(#glow)" />
+                <text x="20" y="40" fill="#FFFFFF" font-size="18" font-family="sans-serif" font-weight="bold">🧩 Tool
+                    Integration</text>
+                <text x="20" y="70" fill="#80DEEA" font-size="14" font-family="sans-serif">內建工具 / MCP / Skills</text>
+            </g>
+        </svg>
+    </div>
+</body>
+
+</html>

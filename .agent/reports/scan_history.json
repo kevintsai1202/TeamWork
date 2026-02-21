@@ -1,0 +1,38 @@
+[
+  {
+    "timestamp": 1771656289069,
+    "issues": [],
+    "summary": {
+      "totalIssues": 0,
+      "todoCount": 0,
+      "durationMs": 189
+    }
+  },
+  {
+    "timestamp": 1771656251653,
+    "issues": [],
+    "summary": {
+      "totalIssues": 0,
+      "todoCount": 0,
+      "durationMs": 182
+    }
+  },
+  {
+    "timestamp": 1771651989150,
+    "issues": [],
+    "summary": {
+      "totalIssues": 0,
+      "todoCount": 0,
+      "durationMs": 199
+    }
+  },
+  {
+    "timestamp": 1771651988841,
+    "issues": [],
+    "summary": {
+      "totalIssues": 0,
+      "todoCount": 0,
+      "durationMs": 195
+    }
+  }
+]

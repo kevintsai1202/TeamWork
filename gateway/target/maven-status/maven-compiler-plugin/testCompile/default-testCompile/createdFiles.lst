@@ -1,0 +1,3 @@
+com\teamwork\gateway\controller\TaskControllerTest.class
+com\teamwork\gateway\service\TaskServiceTest.class
+com\teamwork\gateway\SchemaIntegrationTest.class
