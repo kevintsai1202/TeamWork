@@ -119,10 +119,11 @@
 ## 階段五：無伺服器沙盒編譯與執行機制 (Phase 5 - Agent Code Sandbox)
 本階段目標：賦予 Agent 撰寫、編譯、執行程式碼並自我修正的能力 (Code Execution Capability)，同時確保宿主機 (Host) 絕對的安全隔離。
 
-### 5.1 Docker 引擎整合與基礎建設
-1.  **整合 Docker Client API**：於 Gateway 引入 `docker-java` 工具包，使 Spring Boot 能直接與本機或遠端的 Docker Daemon 溝通。
-2.  **建置基礎 Sandbox Image**：打包涵蓋 Java (Maven/Gradle), Python, Node.js 等基礎編譯防護環境的 Docker Image (`teamwork-sandbox-base`)。
-3.  **實作 Sandbox Manager Service**：負責 Lifecycle 管理 (Create, Start, Exec, Kill, Delete 容器)。
+### 5.1 介面化設計 (Sandbox Provider Strategy) 與基礎建設
+1.  **定義介面 `SandboxProvider`**：取代寫死 Docker，定義標準化介面 `SandboxResult execute(String language, String code, int timeoutSec)`。
+2.  **實作本地容器策略 `DockerSandboxProvider`**：透過 `docker-java` 工具包，於本機啟動自建的 `teamwork-sandbox-base` 進行安全隔離執行。
+3.  **實作雲端沙盒策略 `E2BSandboxProvider`**：串接 E2B Cloud SDK，讓要求極高或特殊的 Agent 任務能送往第三方安全 SaaS 雲端執行。
+4.  **模型組態綁定**：在 `AgentProfile` 資料庫表新增欄位 `sandbox_type` (Enum: DOCKER, E2B, NONE)，讓系統能針對不同 Agent 動態選擇適合的沙盒引擎。
 
 ### 5.2 大模型專用程式碼執行工具 (CodeExecutionTool)
 1.  **開發 `@Tool execute_code`**：令 Agent 能夠透過參數傳遞 `language` 與 `source_code` 給這套工具。
