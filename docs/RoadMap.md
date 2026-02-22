@@ -1,41 +1,44 @@
-# 專案 RoadMap：Team Work 多 AI Agents 協作系統
+# 專案 RoadMap：Team Work 多 Agent 協作系統（2026-02-21 同步版）
 
-> **專案願景**：打造一個具備「非同步執行」、「動態工具擴充 (Tool Integration)」、「自主衍生 (Spawning)」與「長期記憶 (Vector DB)」的多 Agent 協作平台。
+> 專案願景：打造可多租戶、多 Agent、可擴充工具、可接外部 Agent SDK 的協作平台，且維持統一呼叫介面與可控執行安全邊界。
 
-## 🛠️ 技術棧
-*   **後端框架**：Java 21, Spring Boot 4 (4.0.3) (啟用 Virtual Threads)
-*   **AI 代理引擎**：Spring AI 2.0.0-M2 (支援 Function Calling 與跨模型支援)
-*   **持久化儲存**：PostgreSQL (任務狀態) + pgvector (長期記憶)
-*   **快取與通訊**：Redis (Chat Memory, Pub/Sub Internal Events)
-*   **前端應用**：React + TypeScript + Tailwind CSS (包含 React Flow 視覺化任務樹)
+## 技術基線
+- 後端：Java 21 + Spring Boot 4.0.3
+- AI：Spring AI 2.0.0-M2
+- 儲存：PostgreSQL + Redis
+- Agent 統一介面：`UnifiedAgentProvider` / `UnifiedAgentRegistry`
 
-## 🗺️ 階段性功能規劃 (Phases)
+## 指定整合來源（固定）
+- Sandbox：`https://github.com/spring-ai-community/agent-sandbox`
+- 外部 Agent Client：`https://github.com/spring-ai-community/agent-client`
+- Agent 工具調用：`https://github.com/spring-ai-community/spring-ai-agent-utils`
+- 工具範例：`https://github.com/spring-ai-community/spring-ai-agent-utils/tree/main/examples`
+- 原則：已完成能力不重做，只補缺口整合
 
-### Phase 1: 核心基礎與任務引擎 (Foundation)
-- [ ] 基礎 Spring Boot API 與 Postgres/Redis 連線架構
-- [ ] Agent 狀態機 (Pending -> Running -> Completed/Failed)
-- [ ] Master Agent (Depth 0) 的單點非同步執行迴圈 (ReAct Loop)
-- [ ] 基於 Redis Pub/Sub 與 SSE 的事件推播與前端通訊
+## 階段規劃與現況
+### Phase A：已完成基礎（Done）
+- [x] Spring AI 2.x 升級與相容修正
+- [x] 測試改為直連 docker-compose（不依賴 Testcontainers）
+- [x] Master Agent Tool Calling
+- [x] 動態工具開關（DB + 記憶體快取）
+- [x] 純動態模型配置（`.env` 啟動寫入 DB）
+- [x] Sub Agent 最小骨架（`spring-ai-agent-utils`）
+- [x] 統一 Agent 介面（一般 Agent / SDK Agent 同接口）
 
-### Phase 2: 動態裝配與權限引擎 (Dynamic Assembly)
-- [ ] Model & Agent Registry：建立資料庫，支援動態組裝 Agent (結合特定模型與 Prompt)。
-- [ ] RBAC 工具權限：實作多租戶的 Function Calling 權限過濾。
-- [ ] Tool Integration：實作模組化 Skills 系統，支援內建工具、MCP Server 與 `.md` 技能解析。
+### Phase B：當前開發（In Progress）
+- [ ] Master 依 sub-agent 描述自主路由（T12）
 
-### Phase 3: 自主進化與衍生機制 (Evolution & Spawning)
-- [ ] 導入 Vector DB (pgvector) 提供 Agent 檢索過去任務歷史的長期記憶。
-- [ ] 實作 `InstallSkillTool` 讓 Agent 發現工具不足時能自動自動掛載新技能。
-- [ ] 實作 Agent 衍生能力 (`DelegateTask`)，允許拆解任務並生成子 Agent (限制深度 3 層)。
+### Phase C：下一步整合（Next）
+- [ ] 串接 `agent-sandbox` 作為可控執行沙盒（T14）
+- [ ] 串接 `agent-client` 作為外部 Agent 呼叫通道（T15）
+- [ ] 對照 `spring-ai-agent-utils/examples` 補齊缺口能力（T16）
 
-### Phase 4: 前端任務儀表板 (Dashboard UI)
-- [ ] 即時狀態監控看板：透過 SSE 接收並顯示任務狀態變化。
-- [ ] 任務關係樹狀圖：利用 React Flow 視覺化呈現主/子 Agent 的調用路徑。
-- [ ] 任務產出檢視器 (Task Output Viewers)：動態渲染 Agent 產出的 Markdown, 程式碼 Diffs 與結構化資料。
+### Phase D：後續擴展（Future）
+- [ ] 長期記憶（pgvector）與檢索策略
+- [ ] 前端任務關係可視化與子代理追蹤
+- [ ] 生產級安全策略（沙盒權限、審計、租戶隔離）
 
-## 🚩 里程碑 (Milestones)
-- [ ] **Milestone 1 (PoC)**：單一 Agent 成功於背景執行，並透過 Internal Event 將結果推播回前端。
-- [ ] **Milestone 2 (MVP)**：支援多重 Tool Integration 與基本的 Agent 動態設定，具備簡易 Dashboard 介面。
-- [ ] **Milestone 3 (V1.0)**：完整實作 Agent 衍生機制 (Spawning)、自主工具加載，並上線任務視覺化樹狀圖。
-
----
-*備註：詳細的技術實作步驟與開發順序，請參見 `docs/development/Development_Plan.md`。*
+## 里程碑
+- Milestone 1（已達成）：單一 Master Agent 可用、具工具調用與狀態推播
+- Milestone 2（已達成）：具動態工具、動態模型、最小 Sub Agent 與統一 Agent 介面
+- Milestone 3（進行中）：完成自主路由 + sandbox + 外部 agent client 整合

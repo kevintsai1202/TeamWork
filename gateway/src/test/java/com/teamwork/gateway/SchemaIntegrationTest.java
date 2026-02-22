@@ -5,29 +5,31 @@ import com.teamwork.gateway.repository.TaskRecordRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import com.teamwork.gateway.ai.ChatModelFactory;
+import org.springframework.ai.chat.client.ChatClient;
 
-@SpringBootTest
-@Testcontainers
+@SpringBootTest(properties = {
+        "spring.datasource.url=jdbc:postgresql://localhost:15432/teamwork",
+        "spring.datasource.username=postgres",
+        "spring.datasource.password=postgres",
+        "spring.ai.openai.api-key=test-key"
+})
 class SchemaIntegrationTest {
-
-    @Container
-    @ServiceConnection
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine");
 
     @Autowired
     private TaskRecordRepository taskRecordRepository;
 
+    @MockitoBean
+    private ChatModelFactory chatModelFactory;
+
+    @MockitoBean
+    private ChatClient.Builder chatClientBuilder;
+
     @Test
     void testSchemaIsCreatedAndEntityCanBeSaved() {
-        // Assert container is running
-        assertThat(postgres.isRunning()).isTrue();
-
         // Arrange
         TaskRecord task = new TaskRecord();
         task.setProfileId("profile-123");

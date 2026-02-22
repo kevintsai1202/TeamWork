@@ -95,9 +95,9 @@ class RedisChatMemoryTest {
         // Assert
         assertThat(result).hasSize(2);
         assertThat(result.get(0)).isInstanceOf(UserMessage.class);
-        assertThat(result.get(0).getContent()).isEqualTo("Message 4");
+        assertThat(result.get(0).getText()).isEqualTo("Message 4");
         assertThat(result.get(1)).isInstanceOf(AssistantMessage.class);
-        assertThat(result.get(1).getContent()).isEqualTo("Message 5");
+        assertThat(result.get(1).getText()).isEqualTo("Message 5");
     }
 
     @Test

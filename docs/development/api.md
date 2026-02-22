@@ -250,7 +250,7 @@ Request
 - 工具載入採動態模式：任務執行時由 registry 從資料庫與記憶體快取決定本次可用工具集合，支援不重啟切換工具開關。
 - 啟動時會自動讀取 `.env` 的 `MODEL`、`BASE_URL`、`API_KEY` 寫入 `ai_models` 作為預設模型。
 - Sub Agent（內部流程）：`MasterAgent` 透過 `TaskToolCallbackProvider` 掛載 task/tool callbacks，子代理以 markdown 定義（`agents/subagents/*.md`）與 `SubagentReference` 載入。
-- Sub Agent 自主決策（規劃中）：Master 會把各 sub-agent 的描述資訊提供給模型，讓模型自行選擇委派對象；後端保留 RBAC 與工具白名單作最終約束。
+- Sub Agent 自主決策（T12）：Master 會以 sub-agent 描述做 AI 語意比對，並與關鍵字規則分數融合；權重與門檻可由設定檔調整（預設 `ai=0.6`、`keyword=0.4`、`threshold=0.55`）。
 - 統一呼叫介面（內部流程）：`MasterAgent` 僅透過 `UnifiedAgentProvider` 執行 agent；不同來源（Spring AI、Claude SDK、未來 Copilot SDK）以 provider 形式接入，不改動上層呼叫契約。
 - 後續整合來源（固定基線）：
   - Sandbox 使用 `agent-sandbox`

@@ -2,18 +2,14 @@ package com.teamwork.gateway;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
-@SpringBootTest
-@Testcontainers
+@SpringBootTest(properties = {
+        "spring.datasource.url=jdbc:postgresql://localhost:15432/teamwork",
+        "spring.datasource.username=postgres",
+        "spring.datasource.password=postgres",
+        "spring.ai.openai.api-key=test-key"
+})
 class TeamworkGatewayApplicationTests {
-
-    @Container
-    @ServiceConnection
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine");
 
     @Test
     void contextLoads() {

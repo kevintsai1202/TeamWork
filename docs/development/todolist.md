@@ -12,7 +12,7 @@
 - [x] T9：改為純動態 AI 設定（移除 OpenAI starter）並於啟動時將 `.env` 寫入 `ai_models` 作預設模型【已完成】
 - [x] T10：引入 `spring-ai-community/spring-ai-agent-utils` 依賴，作為下一階段 Sub Agent 開發基礎【已完成】
 - [x] T11：參考 `spring-ai-agent-utils` GitHub 範例，導入最小 Sub Agent 委派骨架並驗證編譯測試【已完成】
-- [ ] T12：實作 Master 依 sub-agent 描述自主路由（自動決定呼叫哪個 agent）並補齊測試【待辦】
+- [x] T12：實作 Master 依 sub-agent 描述自主路由（自動決定呼叫哪個 agent）並補齊測試【已完成】
 - [x] T13：建立統一 Agent Provider 介面（一般 Agent / Claude SDK 同接口呼叫）並完成整合【已完成】
 - [ ] T14：串接 `agent-sandbox` 作為可控執行沙盒，並接入統一 Agent Provider 流程【待辦】
 - [ ] T15：串接 `agent-client` 作為外部 Agent 呼叫通道（透過 provider adapter）【待辦】
@@ -22,10 +22,10 @@
 ## 下一階段差距拆分（發布基線）
 
 ### T12：Master 依 sub-agent 描述自主路由
-- [ ] T12-1：建立 `SubAgentDescriptorRepository`，集中管理 name/description/tools/owner-provider。
-- [ ] T12-2：新增 `SubAgentRouter`，依任務語意與 descriptor 打分決策（至少含 fallback 規則）。
-- [ ] T12-3：`MasterAgent` 改為「先路由、後執行」，並保留無匹配時的 `default` 路徑。
-- [ ] T12-4：補齊路由測試（命中/未命中/多候選平手）與回歸測試。
+- [x] T12-1：建立 `SubAgentDescriptorRepository`，集中管理 name/description/tools/owner-provider。
+- [x] T12-2：新增 `SubAgentRouter`，依任務語意與 descriptor 打分決策（至少含 fallback 規則）。
+- [x] T12-3：`MasterAgent` 改為「先路由、後執行」，並保留無匹配時的 `default` 路徑。
+- [x] T12-4：補齊路由測試（命中/未命中/多候選平手）與回歸測試。
 
 ### T14：串接 agent-sandbox
 - [ ] T14-1：建立 `SandboxExecutionProvider`（adapter）並接 `agent-sandbox`。
@@ -72,3 +72,5 @@
 - 2026-02-21：新增後續規劃基線：Sandbox 採 `agent-sandbox`、外部 Client 採 `agent-client`、工具調用採 `spring-ai-agent-utils(+examples)`；已完成能力不重做。
 - 2026-02-21：完成 T17，已依指定來源重整 `docs/RoadMap.md`，並同步更新 `docs/development/spec.md`、`docs/development/api.md`、`docs/development/todolist.md`。
 - 2026-02-22：完成待辦差距盤點，已將 T12/T14/T15/T16 拆分為可執行子任務，作為下一版發布基線。
+- 2026-02-22：完成 T12，新增 SubAgentDescriptorRepository + Hybrid Router（AI 語意 + 關鍵字雙重比較），並導入可調權重/門檻（aiWeight、keywordWeight、threshold）與 fallback；全量測試通過且 JaCoCo 達標（LINE 81.19%、BRANCH 62.86%）。
+- 2026-02-22：確認 T12 目前先採檔案來源（`agents/subagents/*.md`）管理 sub-agent 描述；DB 化需求保留到後續階段（方便即時編輯與共用）。

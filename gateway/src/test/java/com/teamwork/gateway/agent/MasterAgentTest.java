@@ -9,8 +9,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import com.teamwork.gateway.event.TaskStatusChangeEvent;
-
 import java.util.Optional;
+import java.util.List;
+
+import com.teamwork.gateway.ai.ChatModelFactory;
+import com.teamwork.gateway.entity.AiModel;
+import com.teamwork.gateway.repository.AiModelRepository;
+import org.springframework.ai.chat.model.ChatModel;
+import org.mockito.ArgumentCaptor;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -23,6 +29,27 @@ class MasterAgentTest {
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
+
+    @Mock
+    private AiModelRepository aiModelRepository;
+
+    @Mock
+    private ChatModelFactory chatModelFactory;
+
+    @Mock
+    private UnifiedAgentRegistry unifiedAgentRegistry;
+
+    @Mock
+    private SubAgentDescriptorRepository subAgentDescriptorRepository;
+
+    @Mock
+    private SubAgentRouter subAgentRouter;
+
+    @Mock
+    private UnifiedAgentProvider unifiedAgentProvider;
+
+    @Mock
+    private ChatModel chatModel;
 
     @InjectMocks
     private MasterAgent masterAgent;
@@ -43,8 +70,30 @@ class MasterAgentTest {
     void processTask_WhenTaskExists_ShouldCompleteSuccessfully() {
         // Arrange
         TaskRecord mockRecord = new TaskRecord();
-        mockRecord.setId("task-123");
+        // Simulate DB finding the task
         when(taskRecordRepository.findById("task-123")).thenReturn(Optional.of(mockRecord));
+
+        // Simulate reading active AI Model from DB
+        AiModel mockAiModel = new AiModel();
+        mockAiModel.setName("mock-model");
+        mockAiModel.setProvider("OPENAI");
+        mockAiModel.setActive(true);
+        when(aiModelRepository.findAll()).thenReturn(List.of(mockAiModel));
+
+        when(chatModelFactory.createChatModel(mockAiModel)).thenReturn(chatModel);
+        SubAgentDescriptor selected = new SubAgentDescriptor(
+            "general-researcher",
+            "desc",
+            List.of("getCurrentTime"),
+            "CLAUDE",
+            "agents/subagents/general-researcher.md",
+            true,
+            0);
+        when(subAgentDescriptorRepository.findEnabledDescriptors()).thenReturn(List.of(selected));
+        when(subAgentRouter.route("input payload", chatModel, List.of(selected)))
+            .thenReturn(new SubAgentRoutingDecision(selected, 0.5, 0.6, 0.56, false, "matched"));
+        when(unifiedAgentRegistry.resolve(mockAiModel)).thenReturn(unifiedAgentProvider);
+        when(unifiedAgentProvider.execute(any(AgentExecutionContext.class))).thenReturn("Mock AI Response");
 
         // Act
         masterAgent.processTask("task-123", "input payload");
@@ -54,8 +103,14 @@ class MasterAgentTest {
         // Ensure final status is COMPLETED
         assert mockRecord.getStatus().equals("COMPLETED");
 
-        // Verify that events were published (PENDING -> RUNNING -> COMPLETED)
+        // Verify that events were published
         verify(eventPublisher, atLeastOnce()).publishEvent(any(TaskStatusChangeEvent.class));
+
+        ArgumentCaptor<AgentExecutionContext> contextCaptor = ArgumentCaptor.forClass(AgentExecutionContext.class);
+        verify(unifiedAgentProvider).execute(contextCaptor.capture());
+        AgentExecutionContext context = contextCaptor.getValue();
+        assert context.selectedSubAgentName().equals("general-researcher");
+        assert context.selectedSubAgentReferencePath().equals("agents/subagents/general-researcher.md");
     }
 
     @Test
@@ -63,6 +118,7 @@ class MasterAgentTest {
         // Arrange
         TaskRecord mockRecord = new TaskRecord();
         mockRecord.setId("task-456");
+        // Simulate DB finding the task
         when(taskRecordRepository.findById("task-456")).thenReturn(Optional.of(mockRecord));
         // Simulate a DB error ONLY on the first try (when setting to RUNNING)
         // On the second save attempt inside catch block (setting to FAILED), it should

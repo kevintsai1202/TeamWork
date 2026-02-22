@@ -37,7 +37,7 @@ public class ChatMessageDto {
 
         return ChatMessageDto.builder()
                 .type(type)
-                .content(message.getContent())
+                .content(message.getText())
                 .metadata(message.getMetadata())
                 .build();
     }

@@ -31,3 +31,8 @@ server:
 gateway:
   identity:
     allow-request-user-id: true
+  routing:
+    hybrid:
+      ai-weight: 0.6
+      keyword-weight: 0.4
+      threshold: 0.55

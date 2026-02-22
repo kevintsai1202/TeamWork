@@ -273,7 +273,8 @@ stateDiagram-v2
 - 動態工具策略：新增 `DynamicToolRegistry`，以 `tool_configs`（`type=BUILT_IN`）作為開關來源，並以記憶體快取降低每次任務讀 DB 成本；`MasterAgent` 每次任務執行前都從 registry 取得當下可用工具
 - 預設模型初始化：啟動時讀取專案 `.env`（`MODEL`、`BASE_URL`、`API_KEY`）並寫入 `ai_models`，同時將該模型設為預設啟用
 - Sub Agent 策略（MVP）：參考 `spring-ai-agent-utils` GitHub 範例，使用 `TaskToolCallbackProvider` 掛入委派工具，先以本地 markdown 子代理定義檔（`SubagentReference`）提供最小委派能力
-- Sub Agent 路由策略（Next）：Master 在每次任務中讀取可用 sub-agent 的 `name/description/tools`，由模型自主選擇最適合的 sub-agent 執行；每個 sub-agent 使用獨立 conversation key（例如 `taskId:agentName`）避免上下文互汙
+- Sub Agent 路由策略（T12）：Master 在每次任務中讀取可用 sub-agent 的 `name/description/tools`，採「AI 語意分數 + 關鍵字規則分數」雙重比較；最終分數以可調權重融合（預設 `ai=0.6`、`keyword=0.4`），低於可調門檻（預設 `0.55`）則 fallback 到 `default`。
+- Sub Agent 描述來源（現階段）：先採檔案（`agents/subagents/*.md`）集中管理；DB 化（方便即時編輯與跨節點共享）列入後續階段實作。
 - 統一 Agent 介面策略：新增 `UnifiedAgentProvider` 抽象，`MasterAgent` 僅依介面呼叫；本地 Spring AI Agent 與 Claude Agent SDK 皆透過 provider adapter 併入，降低來源耦合
 - 後續整合基線（指定專案）：
   - Sandbox：`spring-ai-community/agent-sandbox`（https://github.com/spring-ai-community/agent-sandbox）
