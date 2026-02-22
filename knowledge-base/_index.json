@@ -1,0 +1,19 @@
+{
+  "lastUpdated": "2026-02-23",
+  "categories": [
+    {
+      "id": "backend-dev",
+      "file": "backend-dev.md",
+      "keywords": [
+        "spring boot",
+        "context",
+        "redis",
+        "compression",
+        "api",
+        "testing",
+        "roadmap",
+        "gate"
+      ]
+    }
+  ]
+}

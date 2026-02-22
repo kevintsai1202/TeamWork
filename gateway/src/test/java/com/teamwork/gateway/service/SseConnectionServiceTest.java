@@ -1,5 +1,6 @@
 package com.teamwork.gateway.service;
 
+import com.teamwork.gateway.event.ContextCompressedEvent;
 import com.teamwork.gateway.event.TaskStatusChangeEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -148,6 +149,25 @@ class SseConnectionServiceTest {
             }
         } catch (Exception e) {
         }
+    }
+
+    @Test
+    void handleContextCompressed_WhenEmitterDoesNotExist_ShouldDoNothing() {
+        ContextCompressedEvent event = new ContextCompressedEvent(this, "missing-task", 100, 60, 40, 0.4);
+        sseConnectionService.handleContextCompressed(event);
+    }
+
+    @Test
+    void handleContextCompressed_WhenEmitterThrowsIOException_ShouldRemoveEmitter() throws Exception {
+        String taskId = "task-context-io";
+        SseEmitter mockEmitter = mock(SseEmitter.class);
+        doThrow(new IOException("context send failed")).when(mockEmitter).send(any(SseEmitter.SseEventBuilder.class));
+        injectEmitterToService(taskId, mockEmitter);
+
+        ContextCompressedEvent event = new ContextCompressedEvent(this, taskId, 300, 120, 180, 0.6);
+        sseConnectionService.handleContextCompressed(event);
+
+        assertThat(isEmitterPresent(taskId)).isFalse();
     }
 
     // --- Helper methods to deal with private concurrent hash maps for testing ---

@@ -23,7 +23,7 @@ public class TaskRecord {
     private String profileId;
 
     @Column(nullable = false)
-    private String status; // PENDING, RUNNING, COMPLETED, FAILED
+    private String status; // PENDING, WAITING, RUNNING, COMPLETED, FAILED, CANCELLED
 
     @Column(name = "input_payload", columnDefinition = "TEXT")
     private String inputPayload;

@@ -19,6 +19,7 @@
     <java.version>21</java.version>
     <spring-ai.version>2.0.0-M2</spring-ai.version>
     <spring-ai-agent-utils.version>0.4.2</spring-ai-agent-utils.version>
+    <agent-sandbox.version>0.9.0-SNAPSHOT</agent-sandbox.version>
   </properties>
 
   <dependencies>
@@ -65,6 +66,27 @@
       <groupId>org.springaicommunity</groupId>
       <artifactId>spring-ai-agent-utils</artifactId>
       <version>${spring-ai-agent-utils.version}</version>
+    </dependency>
+
+    <!-- Agent Sandbox: 核心介面（LocalSandbox / ExecSpec / ExecResult） -->
+    <dependency>
+      <groupId>org.springaicommunity</groupId>
+      <artifactId>agent-sandbox-core</artifactId>
+      <version>${agent-sandbox.version}</version>
+    </dependency>
+
+    <!-- Agent Sandbox: Docker 容器隔離（DockerSandbox，以 Testcontainers 為後端） -->
+    <dependency>
+      <groupId>org.springaicommunity</groupId>
+      <artifactId>agent-sandbox-docker</artifactId>
+      <version>${agent-sandbox.version}</version>
+    </dependency>
+
+    <!-- Agent Sandbox: E2B 雲端 microVM 沙盒（E2BSandbox，需 E2B_API_KEY） -->
+    <dependency>
+      <groupId>org.springaicommunity</groupId>
+      <artifactId>agent-sandbox-e2b</artifactId>
+      <version>${agent-sandbox.version}</version>
     </dependency>
 
     <!-- Utilities -->
@@ -174,6 +196,17 @@
       <id>spring-snapshots</id>
       <name>Spring Snapshots</name>
       <url>https://repo.spring.io/snapshot</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+    </repository>
+    <repository>
+      <id>central-snapshots</id>
+      <name>Maven Central Snapshots</name>
+      <url>https://central.sonatype.com/repository/maven-snapshots/</url>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
       <releases>
         <enabled>false</enabled>
       </releases>

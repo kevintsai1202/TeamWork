@@ -49,8 +49,9 @@ class GlobalExceptionHandlerTest {
         // Assert
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
         assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getStatus()).isEqualTo(500);
+        assertThat(response.getBody().getCode()).isEqualTo("INTERNAL_ERROR");
         assertThat(response.getBody().getMessage()).contains("Test Unexpected Error");
+        assertThat(response.getBody().getTraceId()).isNotBlank();
         assertThat(response.getBody().getTimestamp()).isNotNull();
     }
 
@@ -65,8 +66,9 @@ class GlobalExceptionHandlerTest {
         // Assert
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getStatus()).isEqualTo(400);
+        assertThat(response.getBody().getCode()).isEqualTo("INVALID_ARGUMENT");
         assertThat(response.getBody().getMessage()).contains("Test Bad Request");
+        assertThat(response.getBody().getTraceId()).isNotBlank();
         assertThat(response.getBody().getTimestamp()).isNotNull();
     }
 }

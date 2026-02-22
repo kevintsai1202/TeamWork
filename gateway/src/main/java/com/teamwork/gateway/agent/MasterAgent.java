@@ -25,14 +25,15 @@ public class MasterAgent {
     // -- Phase 2 Components --
     private final AiModelRepository aiModelRepository;
     private final ChatModelFactory chatModelFactory;
-    private final UnifiedAgentRegistry unifiedAgentRegistry;
-    private final SubAgentDescriptorRepository subAgentDescriptorRepository;
-    private final SubAgentRouter subAgentRouter;
+    private final AgentRoutingService agentRoutingService;
+    private final AgentObservabilityService agentObservabilityService;
 
     @Async
     @Transactional
     public void processTask(String taskId, String inputPayload) {
         log.info("MasterAgent starts processing Task ID: {}", taskId);
+        long startedAt = System.currentTimeMillis();
+        agentObservabilityService.recordTaskStarted(taskId);
 
         Optional<TaskRecord> recordOpt = taskRecordRepository.findById(taskId);
         if (recordOpt.isEmpty()) {
@@ -53,37 +54,38 @@ public class MasterAgent {
             // 2. 透過 Factory 初始化真正的 ChatModel
             ChatModel chatModel = chatModelFactory.createChatModel(aiModel);
 
-                // 3. 先做 sub-agent 路由（AI + 關鍵字雙重比較）。
-                var descriptors = subAgentDescriptorRepository.findEnabledDescriptors();
-                SubAgentRoutingDecision routingDecision = subAgentRouter.route(inputPayload, chatModel, descriptors);
-                log.info("Sub-agent routing decided. name={}, finalScore={}, fallbackUsed={}, reason={}",
-                    routingDecision.selected().name(),
-                    routingDecision.finalScore(),
-                    routingDecision.fallbackUsed(),
-                    routingDecision.reason());
-
-                // 4. 透過統一接口選擇 provider 並執行，來源可為一般 Agent 或外部 SDK Agent。
-            UnifiedAgentProvider provider = unifiedAgentRegistry.resolve(aiModel);
-            log.info("MasterAgent starts AI reasoning with model: {}, provider: {}",
-                    aiModel.getName(), aiModel.getProvider());
-                String aiResponse = provider.execute(new AgentExecutionContext(
+                // 3. 路由決策（T18-4）：由 AgentRoutingService 集中處理
+                RoutingPlan routingPlan = agentRoutingService.plan(
                     taskId,
                     inputPayload,
+                    record.getProfileId(),
                     aiModel,
-                    chatModel,
-                    routingDecision.selected().name(),
-                    routingDecision.selected().referencePath(),
-                    routingDecision.selected().ownerProvider(),
-                    routingDecision.fallbackUsed()));
+                    chatModel);
+
+                AgentExecutionContext ctx = routingPlan.executionContext();
+                UnifiedAgentProvider provider = routingPlan.provider();
+
+                log.info("Sub-agent routing decided. name={}, finalScore={}, fallbackUsed={}, reason={}",
+                    routingPlan.subAgentRoutingDecision().selected().name(),
+                    routingPlan.subAgentRoutingDecision().finalScore(),
+                    routingPlan.subAgentRoutingDecision().fallbackUsed(),
+                    routingPlan.subAgentRoutingDecision().reason());
+
+            log.info("MasterAgent starts AI reasoning with model: {}, provider: {}, sandboxEnabled: {}",
+                    aiModel.getName(), aiModel.getProvider(), ctx.sandboxEnabled());
+
+            String aiResponse = provider.execute(ctx);
 
             log.info("Agent Output: \n{}", aiResponse);
 
-            // 標記為完成 (後續將改為觸發 TaskCompletedEvent，等待 2.3 實作)
+            // 標記為完成
             updateTaskStatus(record, "COMPLETED");
+            agentObservabilityService.recordTaskCompleted(taskId, System.currentTimeMillis() - startedAt);
             log.info("MasterAgent completed processing Task ID: {}", taskId);
 
         } catch (Exception e) {
             log.error("MasterAgent encountered an error while processing Task ID: {}", taskId, e);
+            agentObservabilityService.recordTaskFailed(taskId, e);
             updateTaskStatus(record, "FAILED");
         }
     }
@@ -97,3 +99,4 @@ public class MasterAgent {
         eventPublisher.publishEvent(new TaskStatusChangeEvent(this, record.getId(), newStatus, null));
     }
 }
+

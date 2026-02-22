@@ -37,13 +37,10 @@ class MasterAgentTest {
     private ChatModelFactory chatModelFactory;
 
     @Mock
-    private UnifiedAgentRegistry unifiedAgentRegistry;
+    private AgentRoutingService agentRoutingService;
 
     @Mock
-    private SubAgentDescriptorRepository subAgentDescriptorRepository;
-
-    @Mock
-    private SubAgentRouter subAgentRouter;
+    private AgentObservabilityService agentObservabilityService;
 
     @Mock
     private UnifiedAgentProvider unifiedAgentProvider;
@@ -64,6 +61,7 @@ class MasterAgentTest {
 
         // Assert
         verify(taskRecordRepository, never()).save(any(TaskRecord.class));
+        verify(agentObservabilityService).recordTaskStarted("unknown");
     }
 
     @Test
@@ -89,10 +87,31 @@ class MasterAgentTest {
             "agents/subagents/general-researcher.md",
             true,
             0);
-        when(subAgentDescriptorRepository.findEnabledDescriptors()).thenReturn(List.of(selected));
-        when(subAgentRouter.route("input payload", chatModel, List.of(selected)))
-            .thenReturn(new SubAgentRoutingDecision(selected, 0.5, 0.6, 0.56, false, "matched"));
-        when(unifiedAgentRegistry.resolve(mockAiModel)).thenReturn(unifiedAgentProvider);
+        SubAgentRoutingDecision routingDecision = new SubAgentRoutingDecision(
+            selected,
+            0.5,
+            0.6,
+            0.56,
+            false,
+            "matched");
+        AgentExecutionContext executionContext = new AgentExecutionContext(
+            "task-123",
+            "input payload",
+            mockAiModel,
+            chatModel,
+            "general-researcher",
+            "agents/subagents/general-researcher.md",
+            "CLAUDE",
+            false,
+            false,
+            "",
+            "input payload",
+            0L,
+            "LOCAL",
+            null);
+        RoutingPlan routingPlan = new RoutingPlan(executionContext, unifiedAgentProvider, routingDecision);
+        when(agentRoutingService.plan("task-123", "input payload", null, mockAiModel, chatModel))
+            .thenReturn(routingPlan);
         when(unifiedAgentProvider.execute(any(AgentExecutionContext.class))).thenReturn("Mock AI Response");
 
         // Act
@@ -106,11 +125,17 @@ class MasterAgentTest {
         // Verify that events were published
         verify(eventPublisher, atLeastOnce()).publishEvent(any(TaskStatusChangeEvent.class));
 
+        verify(agentRoutingService).plan("task-123", "input payload", null, mockAiModel, chatModel);
+        verify(agentObservabilityService).recordTaskStarted("task-123");
+        verify(agentObservabilityService).recordTaskCompleted(eq("task-123"), anyLong());
+
         ArgumentCaptor<AgentExecutionContext> contextCaptor = ArgumentCaptor.forClass(AgentExecutionContext.class);
         verify(unifiedAgentProvider).execute(contextCaptor.capture());
         AgentExecutionContext context = contextCaptor.getValue();
         assert context.selectedSubAgentName().equals("general-researcher");
         assert context.selectedSubAgentReferencePath().equals("agents/subagents/general-researcher.md");
+        // T14 驗證：sandbox 欄位（無 profile → sandboxEnabled=false）
+        assert !context.sandboxEnabled();
     }
 
     @Test
@@ -139,6 +164,8 @@ class MasterAgentTest {
 
         // Verify that event was published correctly
         verify(eventPublisher, atLeastOnce()).publishEvent(any(TaskStatusChangeEvent.class));
+        verify(agentObservabilityService).recordTaskStarted("task-456");
+        verify(agentObservabilityService).recordTaskFailed(eq("task-456"), any(Exception.class));
     }
 
     @Test
@@ -166,5 +193,7 @@ class MasterAgentTest {
         verify(taskRecordRepository, atLeast(2)).save(mockRecord);
         assert mockRecord.getStatus().equals("FAILED");
         verify(eventPublisher, atLeastOnce()).publishEvent(any(TaskStatusChangeEvent.class));
+        verify(agentObservabilityService).recordTaskStarted("task-789");
+        verify(agentObservabilityService).recordTaskFailed(eq("task-789"), any(Exception.class));
     }
 }

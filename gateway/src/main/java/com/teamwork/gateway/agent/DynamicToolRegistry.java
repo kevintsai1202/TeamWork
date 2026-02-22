@@ -4,11 +4,11 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.teamwork.gateway.entity.ToolConfig;
 import com.teamwork.gateway.repository.ToolConfigRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -26,14 +26,18 @@ public class DynamicToolRegistry {
     private volatile long cacheExpireAtMillis = 0L;
     private volatile List<String> cachedEnabledToolNames = List.of();
 
-    public DynamicToolRegistry(ToolConfigRepository toolConfigRepository, MasterAgentTools masterAgentTools) {
+    @Autowired
+    public DynamicToolRegistry(ToolConfigRepository toolConfigRepository, ToolCapabilityRegistry toolCapabilityRegistry) {
         this.toolConfigRepository = toolConfigRepository;
         this.objectMapper = new ObjectMapper();
+        this.localToolCatalog = toolCapabilityRegistry.toolCatalog();
+    }
 
-        // 本地工具目錄：key 對應 tool_configs.name，value 為可注入 ChatClient.tools(...) 的工具物件。
-        Map<String, Object> catalog = new LinkedHashMap<>();
-        catalog.put("master-agent-tools", masterAgentTools);
-        this.localToolCatalog = Map.copyOf(catalog);
+    /**
+     * 測試相容建構子：保留舊簽名，內部轉為 ToolCapabilityRegistry。
+     */
+    DynamicToolRegistry(ToolConfigRepository toolConfigRepository, MasterAgentTools masterAgentTools) {
+        this(toolConfigRepository, ToolCapabilityRegistry.fromMasterAgentTools(masterAgentTools));
     }
 
     /**

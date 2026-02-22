@@ -32,6 +32,9 @@ class RedisChatMemoryTest {
     @Mock
     private ListOperations<String, String> listOperations;
 
+    @Mock
+    private ContextCompressionService contextCompressionService;
+
     @InjectMocks
     private RedisChatMemory redisChatMemory;
 
@@ -63,6 +66,7 @@ class RedisChatMemoryTest {
         assertThat(pushedJson).hasSize(2);
         assertThat(pushedJson.get(0)).contains("\"type\":\"USER\"").contains("\"content\":\"Hello\"");
         assertThat(pushedJson.get(1)).contains("\"type\":\"ASSISTANT\"").contains("\"content\":\"Hi there!\"");
+        verify(contextCompressionService).compressIfNeeded(CONVERSATION_ID);
     }
 
     @Test
@@ -121,5 +125,6 @@ class RedisChatMemoryTest {
 
         // Assert
         verify(redisTemplate).delete(REDIS_KEY);
+        verify(contextCompressionService).clearCompressionCount(CONVERSATION_ID);
     }
 }

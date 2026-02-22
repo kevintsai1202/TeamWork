@@ -36,3 +36,26 @@ gateway:
       ai-weight: 0.6
       keyword-weight: 0.4
       threshold: 0.55
+  context-compression:
+    enabled: true
+    threshold-tokens: 12000
+    target-tokens: 6000
+    retain-recent-messages: 8
+  webhook:
+    allowed-skew-seconds: 300
+    nonce-ttl-seconds: 300
+
+# 沙盒執行設定（T14）
+sandbox:
+  # 允許在沙盒中執行的語言白名單
+  allowed-languages: python,javascript,bash
+  # 輸出大小上限（bytes），64 KB
+  max-output-bytes: 65536
+  # Docker 沙盒設定（sandboxType=DOCKER 時生效）
+  docker:
+    # 全域預設 Docker 鏡像，AgentProfile.dockerImage 可覆蓋此值
+    default-image: ghcr.io/spring-ai-community/agents-runtime:latest
+  # E2B 雲端沙盒設定（sandboxType=E2B 時生效）
+  e2b:
+    # E2B API Key；未設定時 fallback 到環境變數 E2B_API_KEY
+    api-key: ${E2B_API_KEY:}

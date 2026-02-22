@@ -1,5 +1,8 @@
 package com.teamwork.gateway.service;
 
+import com.teamwork.gateway.event.ContextCompressedEvent;
+import com.teamwork.gateway.event.NotificationFailedEvent;
+import com.teamwork.gateway.event.NotificationSentEvent;
 import com.teamwork.gateway.event.TaskStatusChangeEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -77,6 +80,76 @@ public class SseConnectionService {
                 // 送不出的話直接讓他 complete 斷線，稍後由 timeout / error 自動清除，或是手動清
                 emitters.remove(taskId);
             }
+        }
+    }
+
+    @EventListener
+    public void handleContextCompressed(ContextCompressedEvent event) {
+        String taskId = event.getTaskId();
+        SseEmitter emitter = emitters.get(taskId);
+        if (emitter == null) {
+            return;
+        }
+        try {
+            SseEmitter.SseEventBuilder sseEvent = SseEmitter.event()
+                    .id(taskId)
+                    .name("context.compressed")
+                    .data(Map.of(
+                            "taskId", taskId,
+                            "beforeTokens", event.getBeforeTokens(),
+                            "afterTokens", event.getAfterTokens(),
+                            "savedTokens", event.getSavedTokens(),
+                            "savedRatio", event.getSavedRatio()));
+            emitter.send(sseEvent);
+            log.info("Dispatched context.compressed SSE for taskId: {}", taskId);
+        } catch (IOException e) {
+            log.error("Failed to send context.compressed SSE to taskId: {}", taskId, e);
+            emitters.remove(taskId);
+        }
+    }
+
+    /**
+     * 監聽通知派送成功事件，廣播 notification.sent SSE 給對應 runId 的訂閱者。
+     */
+    @EventListener
+    public void handleNotificationSent(NotificationSentEvent event) {
+        SseEmitter emitter = emitters.get(event.runId());
+        if (emitter == null) return;
+        try {
+            emitter.send(SseEmitter.event()
+                    .id(event.runId())
+                    .name("notification.sent")
+                    .data(Map.of(
+                            "deliveryId", event.deliveryId(),
+                            "runId", event.runId(),
+                            "channelType", event.channelType(),
+                            "eventType", event.eventType())));
+        } catch (IOException e) {
+            log.error("Failed to send notification.sent SSE for runId: {}", event.runId(), e);
+            emitters.remove(event.runId());
+        }
+    }
+
+    /**
+     * 監聽通知派送失敗事件，廣播 notification.failed SSE 給對應 runId 的訂閱者。
+     */
+    @EventListener
+    public void handleNotificationFailed(NotificationFailedEvent event) {
+        SseEmitter emitter = emitters.get(event.runId());
+        if (emitter == null) return;
+        try {
+            emitter.send(SseEmitter.event()
+                    .id(event.runId())
+                    .name("notification.failed")
+                    .data(Map.of(
+                            "deliveryId", event.deliveryId(),
+                            "runId", event.runId(),
+                            "channelType", event.channelType(),
+                            "attempt", event.attempt(),
+                            "error", event.error() != null ? event.error() : "")));
+        } catch (IOException e) {
+            log.error("Failed to send notification.failed SSE for runId: {}", event.runId(), e);
+            emitters.remove(event.runId());
         }
     }
 }

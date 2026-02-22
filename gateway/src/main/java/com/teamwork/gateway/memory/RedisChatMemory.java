@@ -19,10 +19,12 @@ import java.util.stream.Collectors;
 public class RedisChatMemory implements ChatMemory {
 
     private final StringRedisTemplate redisTemplate;
+    private final ContextCompressionService contextCompressionService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public RedisChatMemory(StringRedisTemplate redisTemplate) {
+    public RedisChatMemory(StringRedisTemplate redisTemplate, ContextCompressionService contextCompressionService) {
         this.redisTemplate = redisTemplate;
+        this.contextCompressionService = contextCompressionService;
     }
 
     private static final String KEY_PREFIX = "chat:memory:";
@@ -38,6 +40,7 @@ public class RedisChatMemory implements ChatMemory {
 
         if (!jsonMessages.isEmpty()) {
             redisTemplate.opsForList().rightPushAll(key, jsonMessages);
+            contextCompressionService.compressIfNeeded(conversationId);
         }
     }
 
@@ -75,6 +78,7 @@ public class RedisChatMemory implements ChatMemory {
     @Override
     public void clear(String conversationId) {
         redisTemplate.delete(KEY_PREFIX + conversationId);
+        contextCompressionService.clearCompressionCount(conversationId);
     }
 
     private String toJson(ChatMessageDto dto) {
