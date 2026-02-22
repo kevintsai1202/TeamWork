@@ -7,7 +7,7 @@ spring:
       enabled: true
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/teamwork
+    url: jdbc:postgresql://localhost:15432/teamwork
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
@@ -23,7 +23,11 @@ spring:
   data:
     redis:
       host: localhost
-      port: 6379
+      port: 16379
 
 server:
   port: 8080
+
+gateway:
+  identity:
+    allow-request-user-id: true

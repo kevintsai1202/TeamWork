@@ -1,0 +1,3 @@
+gateway:
+  identity:
+    allow-request-user-id: false

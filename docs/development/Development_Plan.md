@@ -15,6 +15,10 @@
 5.  **建立全域異常處理 (Global Exception Handler)**：實作 `@RestControllerAdvice` 攔截 API 錯誤並回傳統一樣式。
 
 ### 1.2 資料庫 Schema 設計與實作 (Registry & State)
+1.  **設計 `users` 表**：(User ID, Tenant ID, Username, Display Name, Status, Created At, Updated At)。建立對應 Entity 與 Repository，作為任務建立時的使用者存在驗證來源。
+    *   **Gateway 邊界（MVP）**：僅保存授權與路由必要的使用者投影資料（`id/tenant_id/username/display_name/status`），不保存密碼、MFA secret、第三方 OAuth refresh token。
+    *   **身份來源邊界**：登入與憑證簽發由外部 IdP/認證系統負責；Gateway 只消費 Token 宣告並做本地存在與狀態檢查。
+    *   **同步策略**：提供背景同步或事件同步機制，把 IdP 的有效使用者投影到 Gateway `users` 表，並以 `status` 控制停用行為。
 1.  **設計 `ai_models` 表**：(Model ID, Model Name, Provider, API Key [加密存放], Endpoint URL, Status)。建立對應 Entity 與 Repository。
 2.  **設計 `tools` 表**：(Tool ID, Tool Name, Type [Built-in/MCP/Skill], Configuration JSON, Description)。建立 Entity 與 Repository。
 3.  **設計 `agent_profiles` 表**：(Profile ID, Name, System Prompt, Default Model ID)。建立 Entity 與 Repository。
@@ -25,6 +29,7 @@
 
 ### 1.3 核心任務派發器 (Task Dispatcher & Gateway)
 1.  **定義 Task Request API**：建立 `TaskController`，接收前端包含 `profile_id`, `user_id`, `input_text` 的 POST 請求。
+    *   補充：以 Spring Validation 強制 `userId/profileId/inputPayload` 必填，缺值時回傳 `400 Bad Request`。
 2.  **實作 Gateway 攔截與驗證邏輯**：
     *   驗證 User 是否存在。
     *   根據 `profile_id` 撈取 Agent 設定 (`agent_profiles`)。

@@ -29,6 +29,7 @@ class TaskControllerTest {
     void createTask_ShouldReturnAcceptedAndTaskResponse() {
         // Arrange
         TaskRequest request = new TaskRequest();
+        request.setUserId("user-1");
         request.setProfileId("profile-1");
         request.setInputPayload("{\"msg\":\"hello\"}");
 

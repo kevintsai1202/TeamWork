@@ -4,6 +4,7 @@ import com.teamwork.gateway.dto.TaskRequest;
 import com.teamwork.gateway.dto.TaskResponse;
 import com.teamwork.gateway.entity.TaskRecord;
 import com.teamwork.gateway.service.TaskService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +21,7 @@ public class TaskController {
     private final TaskService taskService;
 
     @PostMapping
-    public ResponseEntity<TaskResponse> createTask(@RequestBody TaskRequest request) {
+    public ResponseEntity<TaskResponse> createTask(@Valid @RequestBody TaskRequest request) {
         TaskRecord task = taskService.createNewTask(request);
 
         TaskResponse response = new TaskResponse(

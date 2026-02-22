@@ -8,6 +8,11 @@ Base URL：`/api/v1`
 - 多租戶：由 Token 解析 `tenant_id`，不可由前端任意指定
 - 時間格式：ISO-8601（UTC）
 
+### 身分與使用者邊界
+- 身分驗證（登入、憑證簽發、MFA）由外部 IdP/認證系統負責。
+- Gateway 內 `users` 為投影資料（`id/tenant_id/username/display_name/status`），只用於授權與任務建立驗證。
+- Gateway 不提供密碼管理 API，不保存密碼或 refresh token。
+
 ## 錯誤格式
 ```json
 {
@@ -25,12 +30,18 @@ Base URL：`/api/v1`
 ### 1.1 建立任務
 - Method：`POST /tasks`
 - 說明：建立主任務或子任務
+- 必填欄位：`userId`、`profileId`、`inputPayload`
+- 驗證行為：若任一必填缺漏或空字串，回傳 `400 Bad Request`
+- 使用者驗證：`userId` 必須存在於 Gateway `users`，且 `status=ACTIVE`
+- 測試階段（dev/test）：允許以 request body 的 `userId` 指定測試使用者；正式環境改由 Token claims 提供
+- 測試預設種子（dev/test）：`u_alice`、`u_bob`
 
 Request
 ```json
 {
+  "userId": "usr_001",
   "profileId": "apf_001",
-  "input": "請分析這份需求並提出實作方案",
+  "inputPayload": "請分析這份需求並提出實作方案",
   "parentTaskId": null,
   "metadata": {
     "source": "web"
@@ -44,6 +55,15 @@ Response `202 Accepted`
   "taskId": "tsk_001",
   "status": "PENDING",
   "createdAt": "2026-02-21T10:00:00Z"
+}
+```
+
+Response `400 Bad Request`（欄位驗證失敗）
+```json
+{
+  "status": 400,
+  "message": "userId is required",
+  "timestamp": "2026-02-22T09:00:00Z"
 }
 ```
 
@@ -212,3 +232,28 @@ Request
 - 採 URI 版號：`/api/v1`
 - 破壞性變更升版至 `v2`
 - 事件 payload 增欄位遵守向下相容
+
+## 測試基線（Gateway）
+- 整合測試使用 `docker-compose` 的 PostgreSQL（`localhost:15432`）。
+- 移除 Testcontainers 依賴與 `@Testcontainers`/`@Container`/`@ServiceConnection` 註解。
+
+## 相依版本基線（Gateway）
+- Spring Boot：`4.0.x`
+- Spring AI：`2.0.0-M2`
+- Spring AI Agent Utils：`org.springaicommunity:spring-ai-agent-utils:0.4.2`
+- OpenAI 整合採 `spring-ai-openai`（非 starter），避免啟動期綁定固定 API Key
+
+## Agent Tool Calling（Backend Internal）
+- `MasterAgent` 支援 Spring AI Tool Calling，工具由後端註冊並受權限策略控管。
+- 對話上下文使用 `taskId` 隔離，避免不同任務/使用者互相污染。
+- 工具載入採動態模式：任務執行時由 registry 從資料庫與記憶體快取決定本次可用工具集合，支援不重啟切換工具開關。
+- 啟動時會自動讀取 `.env` 的 `MODEL`、`BASE_URL`、`API_KEY` 寫入 `ai_models` 作為預設模型。
+- Sub Agent（內部流程）：`MasterAgent` 透過 `TaskToolCallbackProvider` 掛載 task/tool callbacks，子代理以 markdown 定義（`agents/subagents/*.md`）與 `SubagentReference` 載入。
+- Sub Agent 自主決策（規劃中）：Master 會把各 sub-agent 的描述資訊提供給模型，讓模型自行選擇委派對象；後端保留 RBAC 與工具白名單作最終約束。
+- 統一呼叫介面（內部流程）：`MasterAgent` 僅透過 `UnifiedAgentProvider` 執行 agent；不同來源（Spring AI、Claude SDK、未來 Copilot SDK）以 provider 形式接入，不改動上層呼叫契約。
+- 後續整合來源（固定基線）：
+  - Sandbox 使用 `agent-sandbox`
+  - 外部 Agent Client 使用 `agent-client`
+  - Agent 工具調用使用 `spring-ai-agent-utils` 與其 `examples`
+  - 已有能力不重做，僅針對缺少的 adapter / sandbox / client 連接點補齊
+- 文件同步狀態：已於 2026-02-21 與 `docs/RoadMap.md`、`docs/development/spec.md`、`docs/development/todolist.md` 對齊
