@@ -2,3 +2,10 @@
 .env
 .env.*
 !.env.example
+
+# Build artifacts
+gateway/target/
+**/target/
+
+# Local compile logs
+gateway/compile.log
