@@ -283,3 +283,4 @@ stateDiagram-v2
   - 原則：已完成能力（例如統一 Agent 介面、既有 tool-calling）不重複實作，只補缺口整合
 - 文件同步狀態：已於 2026-02-21 依最新整合基線重整 `docs/RoadMap.md`，並完成 development 文件對齊
 - User 邊界決策（MVP）：`users` 置於 Gateway 架構內，作為授權與任務路由用的本地投影；登入與憑證簽發由外部 IdP/認證系統負責
+- 測試覆蓋率門檻（Phase 1 驗收）：JaCoCo `LINE >= 80%`、`BRANCH >= 60%`，未達標視為驗收未完成

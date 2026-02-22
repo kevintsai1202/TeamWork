@@ -17,7 +17,8 @@
 
   <properties>
     <java.version>21</java.version>
-    <spring-ai.version>1.0.0-M5</spring-ai.version>
+    <spring-ai.version>2.0.0-M2</spring-ai.version>
+    <spring-ai-agent-utils.version>0.4.2</spring-ai-agent-utils.version>
   </properties>
 
   <dependencies>
@@ -51,12 +52,19 @@
     </dependency>
 
     <!-- Spring AI -->
-    <!-- Add core Spring AI starter or dependencies here when needed for Phase 2 -->
-    <!-- For now, we prepare the BOM and repositories -->
+    <!-- Use library dependency to keep model/key fully dynamic at runtime -->
     <dependency>
       <groupId>org.springframework.ai</groupId>
-      <artifactId>spring-ai-core</artifactId>
-      <version>${spring-ai.version}</version>
+      <artifactId>spring-ai-openai</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.ai</groupId>
+      <artifactId>spring-ai-client-chat</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springaicommunity</groupId>
+      <artifactId>spring-ai-agent-utils</artifactId>
+      <version>${spring-ai-agent-utils.version}</version>
     </dependency>
 
     <!-- Utilities -->
@@ -70,23 +78,6 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-testcontainers</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.testcontainers</groupId>
-      <artifactId>postgresql</artifactId>
-      <version>1.20.1</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.testcontainers</groupId>
-      <artifactId>junit-jupiter</artifactId>
-      <version>1.20.1</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -122,6 +113,32 @@
             <goals>
               <goal>report</goal>
             </goals>
+          </execution>
+          <execution>
+            <id>check</id>
+            <phase>test</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <rule>
+                  <element>BUNDLE</element>
+                  <limits>
+                    <limit>
+                      <counter>LINE</counter>
+                      <value>COVEREDRATIO</value>
+                      <minimum>0.80</minimum>
+                    </limit>
+                    <limit>
+                      <counter>BRANCH</counter>
+                      <value>COVEREDRATIO</value>
+                      <minimum>0.60</minimum>
+                    </limit>
+                  </limits>
+                </rule>
+              </rules>
+            </configuration>
           </execution>
         </executions>
       </plugin>

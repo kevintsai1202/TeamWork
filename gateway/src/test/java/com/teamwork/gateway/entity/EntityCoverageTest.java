@@ -59,4 +59,42 @@ class EntityCoverageTest {
         testLifecycleRecord.onUpdate();
         assertThat(testLifecycleRecord.getUpdatedAt()).isAfterOrEqualTo(oldUpdated);
     }
+
+    @Test
+    void testUserAccountLifecycleAndGettersSetters() {
+        UserAccount user = new UserAccount();
+        assertThat(user.getId()).isNotNull();
+
+        user.setId("u-1");
+        user.setTenantId("tenant-1");
+        user.setUsername("alice");
+        user.setDisplayName("Alice");
+        user.setStatus("ACTIVE");
+
+        assertThat(user.getId()).isEqualTo("u-1");
+        assertThat(user.getTenantId()).isEqualTo("tenant-1");
+        assertThat(user.getUsername()).isEqualTo("alice");
+        assertThat(user.getDisplayName()).isEqualTo("Alice");
+        assertThat(user.getStatus()).isEqualTo("ACTIVE");
+
+        UserAccount lifecycleUser = new UserAccount() {
+            @Override
+            public void onCreate() {
+                super.onCreate();
+            }
+
+            @Override
+            public void onUpdate() {
+                super.onUpdate();
+            }
+        };
+
+        lifecycleUser.onCreate();
+        assertThat(lifecycleUser.getCreatedAt()).isNotNull();
+        assertThat(lifecycleUser.getUpdatedAt()).isNotNull();
+
+        LocalDateTime oldUpdated = lifecycleUser.getUpdatedAt();
+        lifecycleUser.onUpdate();
+        assertThat(lifecycleUser.getUpdatedAt()).isAfterOrEqualTo(oldUpdated);
+    }
 }

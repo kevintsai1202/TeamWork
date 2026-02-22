@@ -236,6 +236,7 @@ Request
 ## 測試基線（Gateway）
 - 整合測試使用 `docker-compose` 的 PostgreSQL（`localhost:15432`）。
 - 移除 Testcontainers 依賴與 `@Testcontainers`/`@Container`/`@ServiceConnection` 註解。
+- 覆蓋率門檻（JaCoCo）：`LINE >= 80%`、`BRANCH >= 60%`。
 
 ## 相依版本基線（Gateway）
 - Spring Boot：`4.0.x`
