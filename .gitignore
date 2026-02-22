@@ -9,3 +9,6 @@ gateway/target/
 
 # Local compile logs
 gateway/compile.log
+
+# Hidden directories
+.*/
